@@ -24,5 +24,13 @@ export default{
             mock:false,
             method:"get"
         })
+    },
+    addNewRun(params){
+        return request({
+            url:"/run_sim",
+            mock:false,
+            method:"post",
+            data:params
+        })
     }
 }
