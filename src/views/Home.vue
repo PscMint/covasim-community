@@ -1,8 +1,8 @@
 <template>
     <el-row>
         <el-col :span="8">
-            <el-collapse >
-                <el-collapse-item title="sim参数" name="1">
+            <el-collapse  >
+                <el-collapse-item title="sim参数" >
                     
                         
                             <el-form v-model="simPars" label-position="top">
@@ -10,12 +10,12 @@
                                 <el-row>
                                     <el-col :span="12">
                                         <el-form-item label="人口总数">
-                                            <el-input v-model="simPars.pop_size" />
+                                            <el-input v-model.number="simPars.pop_size" />
                                             </el-form-item>
                                     </el-col>
                                     <el-col :span="12">
                                         <el-form-item label="初始感染人数">
-                                            <el-input v-model="simPars.pop_infected" />
+                                            <el-input v-model.number="simPars.pop_infected" />
                                             </el-form-item>
                                     </el-col>
                                 </el-row>
@@ -62,7 +62,7 @@
                                     </el-col>
                                     <el-col :span="12">
                                         <el-form-item label="外来输入数量">
-                                            <el-input v-model="simPars.n_import" />
+                                            <el-input v-model.number="simPars.n_import" />
                                         
                                         
                                         </el-form-item>
@@ -73,22 +73,22 @@
                                 <el-row>
                                     <el-col :span="6">
                                     <el-form-item label="家庭平均连接">
-                                        <el-input v-model="simPars.contacts.h"></el-input>
+                                        <el-input v-model.number="simPars.contacts.h"></el-input>
                                     </el-form-item>
                                     </el-col>
                                     <el-col :span="6">
                                         <el-form-item label="校园平均连接">
-                                            <el-input v-model="simPars.contacts.s"></el-input>
+                                            <el-input v-model.number="simPars.contacts.s"></el-input>
                                         </el-form-item>
                                     </el-col>
                                     <el-col :span="6">
                                         <el-form-item label="社区平均连接">
-                                            <el-input v-model="simPars.contacts.c"></el-input>
+                                            <el-input v-model.number="simPars.contacts.c"></el-input>
                                         </el-form-item>
                                     </el-col>
                                     <el-col :span="6">
                                         <el-form-item label="工作平均连接">
-                                            <el-input v-model="simPars.contacts.w"></el-input>
+                                            <el-input v-model.number="simPars.contacts.w"></el-input>
                                         </el-form-item>
                                     </el-col>
                                 </el-row>
@@ -153,17 +153,34 @@
             </el-collapse>
             <div class="button-group">
                 <el-button type="success" plain @click="onRun">运行</el-button>
-                <el-button type="primary" plain>取消</el-button>
+                <!-- <el-button type="primary" plain>取消</el-button> -->
             </div>
             
         
         </el-col>
         <el-col :span="16">
-            <el-card>
-                <div ref="cum_echart" style="height:300px;"></div>
+            <el-card shadow="hover" v-loading="loading" element-loading-text="运行中...">
+                <div ref="cum_echart" style="height:300px;">
+                    <!-- <el-skeleton :rows="8" animated :loading="loading" :throttle="500">
+                        <template #template>
+                            <el-skeleton-item variant="caption" style="width:200px ;" />
+                            <el-skeleton-item variant="image" style="width:400px;height: 250px;margin: auto;" />
+                        </template>   
+                    </el-skeleton> -->
+                </div>
             </el-card>
-            <el-card >
-                <div ref="new_echart" style="height:300px;"></div>
+            <el-card shadow="hover" v-loading="loading" element-loading-text="运行中...">
+                <div ref="new_echart" style="height:300px;">
+                    <!-- <el-skeleton :rows="8" animated :loading="loading" :throttle="500">
+                        <template #template>
+                            <el-skeleton-item variant="caption" style="width:200px ;" />
+                            <el-skeleton-item variant="image" style="width:400px;height: 250px;margin: auto;" />
+                        </template>   
+                    </el-skeleton> -->
+                </div>
+            </el-card>
+            <el-card shadow="hover" v-loading="loading" element-loading-text="运行中...">
+                
             </el-card>
         </el-col>
     </el-row>
@@ -183,6 +200,7 @@ import { getCurrentInstance,onMounted,reactive,ref } from 'vue'
 export default {
 setup(){
     const {proxy}=getCurrentInstance()
+   
     //sim_pars
     const simPars = reactive({
     start_day: '2022-01-01',
@@ -220,9 +238,11 @@ setup(){
                         data:[],
                     },
                 tooltip:{
-                    trigger:'axis'
+                    trigger:'axis',
+                    // formatter:(params)=>{
+                    //     return `${xOptions.xAxis.data[params.dataIndex]}: ${params.data}`
+                    // }
                 },
-
                 xAxis: {
                        
                         data: [],
@@ -243,9 +263,7 @@ setup(){
                 }, 
                 series:[],
             })
-    //初始化累计和新增折线图
-    
-    
+   
     //自定义时间处理函数
     function formatDate(date) {
             if(date instanceof Date){
@@ -263,12 +281,31 @@ setup(){
             }
                 
     }
-    //运行提交的执行函数，在提交之前处理日期格式
+     //初始化累计和新增折线图
+    let cumChart=null
+    let newChart=null
+    onMounted(()=>{
+        cumChart=Echart.init(proxy.$refs["cum_echart"]);
+        newChart=Echart.init(proxy.$refs["new_echart"]);
+    })
+     //图标加载参数
+     let loading=ref(false)
+    //处理点击运行后的事件
     const onRun=()=>{
+        //清空上一轮页面渲染的内容
+        if(cumChart)
+            cumChart.clear();
+        if(newChart)
+            newChart.clear();
+       
+        //打开加载页面动画，保证用户体验
+         loading.value=true
+         
+         //运行提交的执行函数，在提交之前处理日期格式
          simPars.start_day=formatDate(simPars.start_day)
          simPars.end_day=formatDate(simPars.end_day)
          simPars.variant_start_day=formatDate(simPars.variant_start_day)
-         //console.log(simPars)
+         console.log(simPars)
          let all_pars={
             sim_pars:simPars,
             epi_pars:"",
@@ -276,7 +313,7 @@ setup(){
          }
          proxy.$api.addNewRun(all_pars).then((res)=>{
             //后台获取表格数据
-            console.log(res);
+            //console.log(res);
             //处理后台传入的数据，赋值给echart的对象
             const {date,cumData,newData}=res;
             
@@ -301,7 +338,8 @@ setup(){
             xOptions.title.text="日累计数量"
             //渲染累计图
            
-           let cumChart=Echart.init(proxy.$refs["cum_echart"]);
+        //    let cumChart=Echart.init(proxy.$refs["cum_echart"]);
+       
             
             cumChart.setOption(xOptions);
             
@@ -325,11 +363,14 @@ setup(){
             xOptions.title.text="日新增数量"
             //渲染新增图
             
-            let newChart=Echart.init(proxy.$refs["new_echart"]);
+            // let newChart=Echart.init(proxy.$refs["new_echart"]);
             
             newChart.setOption(xOptions);
+            //渲染结束后取消加载动画
+            loading.value=false;
 
-         })
+         }
+         )
 
 
          
@@ -344,7 +385,8 @@ setup(){
     })
     return{
         simPars,
-        onRun
+        onRun,
+        loading
     }
 
 }
