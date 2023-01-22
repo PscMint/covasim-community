@@ -8,12 +8,13 @@
                             <el-form v-model="simPars" label-position="top">
                                 <el-divider  >人口设置</el-divider>
                                 <el-row>
-                                    <el-col :span="12">
+                                    <el-col :span="11">
                                         <el-form-item label="人口总数">
                                             <el-input v-model.number="simPars.pop_size" />
                                             </el-form-item>
                                     </el-col>
-                                    <el-col :span="12">
+                                    <el-col :span="2"></el-col>
+                                    <el-col :span="11">
                                         <el-form-item label="初始感染人数">
                                             <el-input v-model.number="simPars.pop_infected" />
                                             </el-form-item>
@@ -30,7 +31,7 @@
                                 </el-row>
                                 <el-divider >时间设置</el-divider>
                                 <el-row>
-                                    <el-col :span="12">
+                                    <el-col :span="11">
                                         <el-form-item label="开始时间">
                                             <el-date-picker
                                             v-model="simPars.start_day"
@@ -39,7 +40,8 @@
                                             />
                                         </el-form-item>
                                     </el-col>
-                                    <el-col :span="12">
+                                    <el-col :span="2"></el-col>
+                                    <el-col :span="11">
                                         <el-form-item label="结束时间">
                                             <el-date-picker
                                             v-model="simPars.end_day"
@@ -49,9 +51,9 @@
                                         </el-form-item>
                                     </el-col>
                                 </el-row>
-                                <el-divider >外来输入设置</el-divider>
+                                <!-- <el-divider >外来输入设置</el-divider>
                                 <el-row>
-                                    <el-col :span="12">
+                                    <el-col :span="11">
                                         <el-form-item label="外来输入时间">
                                             <el-date-picker
                                             v-model="simPars.variant_start_day"
@@ -60,14 +62,15 @@
                                             />
                                         </el-form-item>
                                     </el-col>
-                                    <el-col :span="12">
+                                    <el-col :span="2"></el-col>
+                                    <el-col :span="11">
                                         <el-form-item label="外来输入数量">
                                             <el-input v-model.number="simPars.n_import" />
                                         
                                         
                                         </el-form-item>
                                     </el-col>
-                                </el-row>
+                                </el-row> -->
                                 
                                 <el-divider >连接数设置</el-divider>
                                 <el-row>
@@ -99,26 +102,38 @@
                     
                 </el-collapse-item>
                 <el-collapse-item title="流行病学参数" name="2">
-                    <el-form :model="simPars" label-position="top">
+                    <el-form :model="epiPars" label-position="top">
                                 <el-row>
-                                    <el-col :span="12">
-                                        <el-form-item label="初始感染人数">
-                                        <el-input v-model="simPars.pop_infected" />
+                                    <el-col :span="11">
+                                        <el-form-item  label="病毒传播率">
+                                        <el-input  :disabled="!isRel" v-model="epiPars.beta"
+                                        @change="()=>{
+                                            if(epiPars.beta==null)
+                                             isRel=false;
+                                        }"/>
                                         </el-form-item>
-                                        <el-form-item label="开始时间">
-                                        
+                                        <el-form-item label="相对有症状概率">
+                                        <el-input   v-model="epiPars.symp" />
                                         </el-form-item>
-                                    </el-col>
-                                    <el-col :span="12">
-                                        <el-form-item label="社区总人数">
-                                        <el-input v-model="simPars.pop_size" />
-                                        </el-form-item>
-                                    </el-col>
-                                    <el-col :span="12">
-                                        <el-form-item label="网络模型">
-                                        <el-input v-model="simPars.pop_type" />
+                                        <el-form-item label="相对危重症率">
+                                        <el-input   v-model="epiPars.crit" />
                                         </el-form-item>
                                     </el-col>
+                                    <el-col :span="2"></el-col>
+                                    <el-col :span="11">
+                                        <el-form-item label="病毒相对传播率">
+                                            <el-input  :disabled="isRel" v-model="epiPars.rel_beta" />
+                                        </el-form-item>
+                                       
+                                        <el-form-item label="相对重症率">
+                                        <el-input v-model="epiPars.severe" />
+                                        </el-form-item>
+
+                                        <el-form-item label="相对死亡率">
+                                        <el-input v-model="epiPars.death"  />
+                                        </el-form-item>
+                                    </el-col>
+                                
                                 </el-row>
                                 
                                 
@@ -215,8 +230,20 @@ setup(){
         w: 20
     },
     variant_start_day: '2022-02-05',
-    n_import: 3
+    n_import: 0
     })
+    //epi_pars
+    const epiPars=reactive({
+        //这里的概率都是相对概率
+        symp:"1.0",
+        severe:"1.0",
+        crit:"1.0",
+        death:"1.0",
+        rel_beta:"1.0",
+        beta:"0.016"
+    })
+    //控制传播率和相对传播率是否可传递
+    let isRel=true;
 
     
     //折线图的配置参数
@@ -281,6 +308,30 @@ setup(){
             }
                 
     }
+    //自定义表单字符串转化小数函数
+    function toFloatNumber(value) { 
+            if(typeof value==="number")
+            return value;
+            // 清除"数字"和"."以外的字符
+            value = value.replace(/[^\d.]/g,"");
+            // 清除开头的"."
+            value = value.replace(/^\./g,"");
+            // 将超过两位小数以外的数字替换为字符"."
+            value = value.replace(/\.{2,}/g,".");
+            // 除了第一个小数点以后，后面的小数点全部替换为空
+            value = value.replace(".","$#$").replace(/\./g,"").replace("$#$",".");
+            // 只能输入六位小数
+            value = value.replace(/^(\-)*(\d+)\.(\d\d\d\d\d\d).*$/,'$1$2.$3');
+            //如果没有小数点，首位不能为类似于 01、02的数字
+            if(value.indexOf(".")< 0 && value !=""){
+                if(value.substr(0,1) == '0' && value.length == 2){
+                    value= value.substr(1,value.length);
+                }
+            }
+            return parseFloat(value)
+        }
+
+
      //初始化累计和新增折线图
     let cumChart=null
     let newChart=null
@@ -305,12 +356,21 @@ setup(){
          simPars.start_day=formatDate(simPars.start_day)
          simPars.end_day=formatDate(simPars.end_day)
          simPars.variant_start_day=formatDate(simPars.variant_start_day)
-         console.log(simPars)
+         //修改参数的格式类型
+         epiPars.symp=toFloatNumber( epiPars.symp);
+         epiPars.severe=toFloatNumber( epiPars.severe);
+         epiPars.crit=toFloatNumber( epiPars.crit);
+         epiPars.death=toFloatNumber( epiPars.death);
+         epiPars.beta=toFloatNumber( epiPars.beta);
+         epiPars.rel_beta=toFloatNumber( epiPars.rel_beta);
+         console.log(epiPars)
          let all_pars={
             sim_pars:simPars,
-            epi_pars:"",
+            epi_pars:epiPars,
             int_pars:""
          }
+         //在控制台检查前端传参的格式
+         console.log(all_pars)
          proxy.$api.addNewRun(all_pars).then((res)=>{
             //后台获取表格数据
             //console.log(res);
@@ -375,18 +435,13 @@ setup(){
 
          
     }
-
-
-
-            
-
-    onMounted(()=>{
-        
-    })
     return{
         simPars,
+        epiPars,
         onRun,
-        loading
+        loading,
+        isRel,
+        toFloatNumber
     }
 
 }
