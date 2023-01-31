@@ -32,5 +32,14 @@ export default{
             method:"post",
             data:params
         })
+    },
+    uploadFile(params){
+        return request({
+            url:"/upload",
+            mock:false,
+            method:"post",
+            data:params,
+            headers:{"content-type": "multipart/form-data"}
+        })
     }
 }

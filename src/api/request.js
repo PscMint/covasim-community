@@ -11,6 +11,7 @@ const service=axios.create({
 
 service.interceptors.request.use((req)=>{
     // 在请求之前的固定操作，比如：自定义header
+    console.log(req)
     return req;
 })
 service.interceptors.response.use((res)=>{
@@ -31,6 +32,12 @@ function request(options){
     // method default is get
     options.method=options.method||"get";
     options.params=options.data;
+   
+    // if(options.headers){
+    //     const headers=options.headers;
+    //     //允许请求自己设定请求头
+    //     service.defaults.headers=headers;
+    // }
     //设置是否使用mock，config是mock的总开关，代表没有设定或者大体的默认的情况
     //保留每个方法的mock属性，给每个方法选择是否通过mock获取数据，如果单个定义了，那么就会按照单个开启或关闭
     let isMock=config.mock;

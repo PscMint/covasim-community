@@ -2,7 +2,7 @@
     <el-row>
         <el-col :span="8">
             <el-collapse  >
-                <el-collapse-item title="sim参数" >
+                <el-collapse-item title="基本模拟设定" >
                     
                         
                             <el-form v-model="simPars" label-position="top">
@@ -22,12 +22,33 @@
                                 </el-row>
                                 <el-divider >网络设置</el-divider>
                                 <el-row>
-                                    <el-form-item label="网络模型选择">
-                                            <el-select v-model="simPars.pop_type" placeholder="请选择网络模型">
+                                    <el-form-item label="网络模型选择" >
+                                            <el-select @change="handleCommunity" v-model="simPars.pop_type" placeholder="请选择网络模型">
                                                 <el-option label="社区网络模型" value="pro_hybrid" />
-                                                <el-option label="网络模型" value="hybrid" />
+                                                <el-option label="混合网络模型" value="hybrid" />
                                             </el-select>
-                                        </el-form-item>
+                                    </el-form-item>
+                                    <el-form-item>
+                                        
+                                        <el-upload
+                                            v-show="showFileInput"
+                                            
+                                            action="fakeaction"
+                                            :http-request="handleUpload"                                          
+                                            
+                                            
+                                            :limit="1"
+                                            :on-exceed="handleExceed"
+                                        >
+                                            <el-button type="primary">上传居民信息</el-button>
+                                            <template #tip>
+                                            <div class="upload-tip">
+                                                <el-icon  color="#E6A23C"><Warning /></el-icon>
+                                               使用社区网络必须上传社区每一位居民的居住信息，并且模拟人数必须和文件中人数保持一致 
+                                            </div>
+                                            </template>
+                                        </el-upload>
+                                    </el-form-item>
                                 </el-row>
                                 <el-divider >时间设置</el-divider>
                                 <el-row>
@@ -95,6 +116,36 @@
                                         </el-form-item>
                                     </el-col>
                                 </el-row>
+
+                                <el-divider>模式选择</el-divider>
+                                <el-row>
+                                    <el-col :span="11">
+                                        <el-tooltip content="模拟社区人群的自主防疫模式，如佩戴口罩等措施是否积极" placement="top" effect="dark">
+                                        <el-form-item label="防疫模式选择">
+                                            <el-select v-model="simPars.interv_degree" placeholder="请选择防疫模式">
+                                               
+                                                <el-option label="积极防疫模式" value="positive" />
+                                                <el-option label="消极防疫模式" value="negative" />
+                                            </el-select>
+                                        </el-form-item>
+                                    </el-tooltip>
+                                    </el-col>
+                                    <el-col :span="2"></el-col>
+                                    <el-col :span="11">
+                                        <el-tooltip content="改变病毒的传播率，重症概率等（悲观模式中的各项概率均高于乐观模式）" placement="top" effect="dark">
+                                        <el-form-item label="病毒模式选择">
+                                            <el-select v-model="simPars.epi_degree" placeholder="请选择病毒模式">
+                                                <el-option label="默认模式" value="default" />
+                                                <el-option label="乐观模式" value="optimistic" />
+                                                <el-option label="悲观模式" value="pessimistic" />
+                                            </el-select>
+                                            
+                                        </el-form-item>
+                                    </el-tooltip>
+                                    </el-col>
+
+                                </el-row>
+                        
                             </el-form>
                         
                     
@@ -105,32 +156,37 @@
                     <el-form :model="epiPars" label-position="top">
                                 <el-row>
                                     <el-col :span="11">
+                                        <el-tooltip content="开启后以输入的数值模拟为准，若使用选择模式请勿开启">
+                                            <el-form-item>
+                                                <el-switch  v-model="epiPars.isUseful" 
+                                                active-text="关闭"
+                                                inactive-text="开启"/>
+                                            </el-form-item>
+                                        </el-tooltip>
                                         <el-form-item  label="病毒传播率">
-                                        <el-input  :disabled="!isRel" v-model="epiPars.beta"
+                                        <el-input  :disabled="!epiPars.isUseful" v-model="epiPars.beta"
                                         @change="()=>{
                                             if(epiPars.beta==null)
                                              isRel=false;
                                         }"/>
                                         </el-form-item>
                                         <el-form-item label="相对有症状概率">
-                                        <el-input   v-model="epiPars.symp" />
+                                        <el-input :disabled="!epiPars.isUseful"  v-model="epiPars.symp" />
                                         </el-form-item>
                                         <el-form-item label="相对危重症率">
-                                        <el-input   v-model="epiPars.crit" />
+                                        <el-input :disabled="!epiPars.isUseful"  v-model="epiPars.crit" />
                                         </el-form-item>
                                     </el-col>
                                     <el-col :span="2"></el-col>
                                     <el-col :span="11">
-                                        <el-form-item label="病毒相对传播率">
-                                            <el-input  :disabled="isRel" v-model="epiPars.rel_beta" />
-                                        </el-form-item>
+                                        
                                        
                                         <el-form-item label="相对重症率">
-                                        <el-input v-model="epiPars.severe" />
+                                        <el-input :disabled="!epiPars.isUseful" v-model="epiPars.severe" />
                                         </el-form-item>
 
-                                        <el-form-item label="相对死亡率">
-                                        <el-input v-model="epiPars.death"  />
+                                        <el-form-item   label="相对死亡率">
+                                        <el-input :disabled="!epiPars.isUseful" v-model="epiPars.death"  />
                                         </el-form-item>
                                     </el-col>
                                 
@@ -174,6 +230,19 @@
         
         </el-col>
         <el-col :span="16">
+            <!-- 模拟时间维度 -->
+            
+            <!-- 重要数字看板 -->
+            <el-card :body-style="{display:'flex'}"  shadow="hover" v-loading="loading" element-loading-text="运行中...">
+                <!-- 累计 感染，重症，危重症，死亡 ，治愈-->
+                <div v-for="item in panel" class="panel-block">
+                    <div>{{ item.label }}</div>
+                    <div class="num-style" :style="{color:item.color}">{{ item.num }}</div>
+                </div>
+                
+
+            </el-card>
+            <!-- 图表看板 -->
             <el-card shadow="hover" v-loading="loading" element-loading-text="运行中...">
                 <div ref="cum_echart" style="height:300px;">
                     <!-- <el-skeleton :rows="8" animated :loading="loading" :throttle="500">
@@ -194,9 +263,7 @@
                     </el-skeleton> -->
                 </div>
             </el-card>
-            <el-card shadow="hover" v-loading="loading" element-loading-text="运行中...">
-                
-            </el-card>
+           
         </el-col>
     </el-row>
     
@@ -210,12 +277,39 @@
 </template>
 <script>
 import * as Echart from "echarts"
-
-import { getCurrentInstance,onMounted,reactive,ref } from 'vue'
+import { getCurrentInstance,onMounted,reactive,ref,onUnmounted} from 'vue'
+import { ElMessage } from "element-plus";
 export default {
 setup(){
     const {proxy}=getCurrentInstance()
-   
+   //penal_data:
+    const panel = reactive({
+        cum_infections:{
+            label:"累计感染数量",
+            num:0,
+            color:"#4266BE",
+        },
+        cum_severe:{
+            label:"累计重症数量",
+            num:0,
+            color:"#c1981d",
+        }, 
+        cum_critical:{
+            label:"累计危重症数量",
+            num:0,
+            color:"#FE0302",
+        }, 
+        cum_recoveries:{
+            label:"累计康复数量",
+            num:0,
+            color:"#00CD00",
+        }, 
+        cum_deaths:{
+            label:"累计死亡数量",
+            num:0,
+            color:"#000000",
+        },
+})
     //sim_pars
     const simPars = reactive({
     start_day: '2022-01-01',
@@ -223,6 +317,8 @@ setup(){
     pop_infected: 10,
     pop_size: 5000,
     pop_type: 'hybrid',
+    interv_degree:"negative",//postive|negative|default
+    epi_degree:"default",//optimistic|pessimistic|default
     contacts: {
         h: 3, 
         c: 36, 
@@ -230,17 +326,18 @@ setup(){
         w: 20
     },
     variant_start_day: '2022-02-05',
-    n_import: 0
+    // n_import: 0
     })
     //epi_pars
     const epiPars=reactive({
         //这里的概率都是相对概率
+        isUseful:ref(true),
         symp:"1.0",
         severe:"1.0",
         crit:"1.0",
         death:"1.0",
         rel_beta:"1.0",
-        beta:"0.016"
+        beta:"0.015"
     })
     //控制传播率和相对传播率是否可传递
     let isRel=true;
@@ -335,10 +432,45 @@ setup(){
      //初始化累计和新增折线图
     let cumChart=null
     let newChart=null
+    //添加图表的resize处理程序
+    function resizeChart(){
+        cumChart.resize();
+        newChart.resize();
+    }
     onMounted(()=>{
         cumChart=Echart.init(proxy.$refs["cum_echart"]);
         newChart=Echart.init(proxy.$refs["new_echart"]);
+        //增加窗口变化的监听器，及时调整echart图大小
+        window.addEventListener('resize',resizeChart);
     })
+    onUnmounted(()=>{
+        //移除监听窗口变化的监听器
+        window.removeEventListener('resize',resizeChart);
+    })
+    //文件上传处理
+    const handleUpload=(fileData)=>{
+        let {file}=fileData
+        console.log(file)
+        //检查文件的格式和类型
+        //处理文件
+        // 根据后台需求数据格式
+        const form = new FormData();
+          // 文件对象
+          form.append("file", file);
+          
+        //发送到后台
+       proxy.$api.uploadFile(form).then((res)=>{
+        console.log(res)
+       })
+    }
+    //上传数量超标提醒
+    const handleExceed=(files)=>{
+        
+        ElMessage.warning(
+            `本次模拟只能上传一份文件`
+        )
+}
+    
      //图标加载参数
      let loading=ref(false)
     //处理点击运行后的事件
@@ -372,11 +504,14 @@ setup(){
          //在控制台检查前端传参的格式
          console.log(all_pars)
          proxy.$api.addNewRun(all_pars).then((res)=>{
-            //后台获取表格数据
-            //console.log(res);
+            //检查从后台获取一系列表格数据
+            console.log(res);
             //处理后台传入的数据，赋值给echart的对象
-            const {date,cumData,newData}=res;
-            
+            const {panelData,date,cumData,newData}=res;
+            //给面板字典赋值
+           for(let key in panelData){
+            panel[key].num=panelData[key]
+           }
            //保存时间序列
             xOptions.xAxis.data=date.map((item)=>{
                 return formatDate(new Date(item))
@@ -435,13 +570,28 @@ setup(){
 
          
     }
+    //控制接受收文件的upload是否出现的开关
+    let showFileInput=ref(false)
+    //触发接受收文件的upload的处理程序
+    const handleCommunity=(val)=>{
+        if(val=='pro_hybrid'){
+            showFileInput.value=true;
+        }else if(val=='hybrid'){
+            showFileInput.value=false;
+        }
+    }
     return{
         simPars,
         epiPars,
         onRun,
         loading,
         isRel,
-        toFloatNumber
+        toFloatNumber,
+        panel,
+        handleCommunity,
+        showFileInput,
+        handleUpload,
+        handleExceed
     }
 
 }
@@ -486,4 +636,24 @@ setup(){
 .el-divider{
     font-size:15px;
 }
+:deep(.el-card__body){
+justify-content: space-around;
+.panel-block{
+ display: flex;
+ flex-direction: column;
+ align-items: center;
+ font-weight: bold;
+ .num-style{
+    font-size:20px;
+   
+ }
+}
+}
+.upload-tip{
+    font-size: 14px;
+    font-weight: lighter;
+    line-height: 24px;
+    color: #aaa;
+}
+
 </style>
