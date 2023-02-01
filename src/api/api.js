@@ -1,5 +1,6 @@
 // 对整个项目api的管理，所有的数据请求方法集合在该对象中，该对象绑定到vue的全局
 import request from "./request"
+import axios from "axios"
 export default{
     
     addUser(params){
@@ -34,12 +35,13 @@ export default{
         })
     },
     uploadFile(params){
-        return request({
-            url:"/upload",
-            mock:false,
-            method:"post",
-            data:params,
-            headers:{"content-type": "multipart/form-data"}
-        })
+        // return request({
+        //     url:"/upload",
+        //     mock:false,
+        //     method:"post",
+        //     data:params,
+        // })
+        const service=axios.post("http://127.0.0.1:5000/upload",params,{headers:{'Content-Type': 'multipart/form-data'}})
+        return service;
     }
 }

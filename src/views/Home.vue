@@ -32,14 +32,13 @@
                                         
                                         <el-upload
                                             v-show="showFileInput"
-                                            
-                                            action="fakeaction"
+                                         
                                             :http-request="handleUpload"                                          
-                                            
-                                            
+                                        
                                             :limit="1"
                                             :on-exceed="handleExceed"
                                         >
+                                        
                                             <el-button type="primary">上传居民信息</el-button>
                                             <template #tip>
                                             <div class="upload-tip">
@@ -145,6 +144,20 @@
                                     </el-col>
 
                                 </el-row>
+                                <el-row>
+                                    <el-col :span="11">
+                                        <el-tooltip content="选择老龄化程度不同的人群" placement="top" effect="dark">
+                                        <el-form-item label="老龄化程度选择">
+                                            <el-select v-model="simPars.old_degree" placeholder="请选择病毒模式">
+                                                <el-option label="默认人群" value="China" />
+                                                <el-option label="60%的60+人群" value="popOld60" />
+                                                <el-option label="70%的60+人群" value="popOld70" />
+                                            </el-select>
+                                            
+                                        </el-form-item>
+                                    </el-tooltip>
+                                    </el-col>
+                                </el-row>
                         
                             </el-form>
                         
@@ -230,16 +243,18 @@
         
         </el-col>
         <el-col :span="16">
-            <!-- 模拟时间维度 -->
+            
             
             <!-- 重要数字看板 -->
             <el-card :body-style="{display:'flex'}"  shadow="hover" v-loading="loading" element-loading-text="运行中...">
                 <!-- 累计 感染，重症，危重症，死亡 ，治愈-->
-                <div v-for="item in panel" class="panel-block">
+                
+                <div  v-for="item in panel" class="panel-block">
                     <div>{{ item.label }}</div>
                     <div class="num-style" :style="{color:item.color}">{{ item.num }}</div>
-                </div>
+                    
                 
+                </div>
 
             </el-card>
             <!-- 图表看板 -->
@@ -319,6 +334,7 @@ setup(){
     pop_type: 'hybrid',
     interv_degree:"negative",//postive|negative|default
     epi_degree:"default",//optimistic|pessimistic|default
+    old_degree:"China",//China|popOld60|popOld70
     contacts: {
         h: 3, 
         c: 36, 
@@ -450,13 +466,12 @@ setup(){
     //文件上传处理
     const handleUpload=(fileData)=>{
         let {file}=fileData
-        console.log(file)
-        //检查文件的格式和类型
-        //处理文件
-        // 根据后台需求数据格式
+        //console.log(file)
+        
+        // 使用表单数据对象保存文件
         const form = new FormData();
-          // 文件对象
-          form.append("file", file);
+        // 文件对象
+        form.append("file", file);
           
         //发送到后台
        proxy.$api.uploadFile(form).then((res)=>{
