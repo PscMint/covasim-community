@@ -273,6 +273,13 @@
                             
                         </el-table-column>
                     </el-table>
+                    <Suspense> 
+                    <tiny-gantt
+                    :totalDay="days"
+                    :tasks="intPars.c_distance"
+                    ></tiny-gantt>
+                   </Suspense>
+                   
                                                             
                            
                 </el-collapse-item>
@@ -334,9 +341,13 @@
 </template>
 <script>
 import * as Echart from "echarts"
-import { getCurrentInstance,onMounted,reactive,ref,onUnmounted} from 'vue'
+import { getCurrentInstance,onMounted,reactive,ref,onUnmounted,defineAsyncComponent} from 'vue'
 import { ElMessage } from "element-plus";
+const TinyGantt=defineAsyncComponent(()=>import("../components/TinyGantt.vue"))
 export default {
+components:{
+    TinyGantt
+},
 setup(){
     const {proxy}=getCurrentInstance()
    //penal_data:
@@ -411,11 +422,9 @@ setup(){
     //防疫标签页开关
     let activeInt=ref("first")
     //int_pars防疫参数
-    const intPars=reactive({
-        c_distance:[
-           
-        ]
-    })
+    const intPars={
+        c_distance:reactive([])
+    }
     //工具函数，计算两个日期包括的天数
     function getDaysBetweenDates(date1, date2) {
         const diffTime = Math.abs(date2 - date1);
@@ -452,6 +461,10 @@ setup(){
         const new_interv=Object.assign({},cdisForm)
         
         intPars['c_distance'].push(new_interv);
+        //将表格中的数据按照start升序排列
+        intPars['c_distance'].sort((a,b)=>{
+            return a.start-b.start;
+        })
     }
     //删除防疫措施
     const deleteInterv=(index)=>{
@@ -702,7 +715,16 @@ setup(){
             showFileInput.value=false;
         }
     }
+    //计算模拟使用的天数
+    const days=getDaysBetweenDates(simPars.start_day-simPars.end_day)
+    const test=[
+                {start:0,end:10,value:0.5},
+                {start:11,end:30,value:0.7},
+                {start:31,end:35,value:0.7},
+                {start:36,end:40,value:0.8}
+            ]
     return{
+        test,
         simPars,
         epiPars,
         onRun,
@@ -719,7 +741,8 @@ setup(){
         addInterv,
         deleteInterv,
         activeInt,
-        activeSim
+        activeSim,
+        days
     }
 
 }
