@@ -60,6 +60,7 @@
                                                     <el-date-picker
                                                     v-model="simPars.start_day"
                                                     placeholder="请选择模拟开始时间"
+                                                    @change="checkTime"
                                                     
                                                     />
                                                 </el-form-item>
@@ -70,6 +71,7 @@
                                                     <el-date-picker
                                                     v-model="simPars.end_day"
                                                     placeholder="请选择模拟结束时间"
+                                                    @change="checkTime"
                                                     
                                                     />
                                                 </el-form-item>
@@ -273,12 +275,12 @@
                             
                         </el-table-column>
                     </el-table>
-                    <Suspense> 
+                   
                     <tiny-gantt
                     :totalDay="days"
                     :tasks="intPars.c_distance"
                     ></tiny-gantt>
-                   </Suspense>
+                   
                    
                                                             
                            
@@ -341,7 +343,7 @@
 </template>
 <script>
 import * as Echart from "echarts"
-import { getCurrentInstance,onMounted,reactive,ref,onUnmounted,defineAsyncComponent} from 'vue'
+import { getCurrentInstance,onMounted,reactive,ref,onUnmounted,defineComponent,defineAsyncComponent} from 'vue'
 import { ElMessage } from "element-plus";
 const TinyGantt=defineAsyncComponent(()=>import("../components/TinyGantt.vue"))
 export default {
@@ -398,6 +400,17 @@ setup(){
     variant_start_day: '2022-02-05',
     // n_import: 0
     })
+    //检查输入时间的相对时间正确性
+    const checkTime=()=>{
+        if(simPars.start_day-simPars.end_day>=0){
+            ElMessage({
+                message:"模拟天数必须是1天及以上",
+                type:'error'
+            })
+            simPars.start_day=new Date('2022-01-01'),
+            simPars.end_day=new Date('2022-02-20')
+        }    
+    }
     //epi_pars
     const epiPars=reactive({
         //这里的概率都是相对概率
@@ -698,6 +711,7 @@ setup(){
             newChart.setOption(xOptions);
             //渲染结束后取消加载动画
             loading.value=false;
+            
 
          }
          )
@@ -742,7 +756,8 @@ setup(){
         deleteInterv,
         activeInt,
         activeSim,
-        days
+        days,
+        checkTime
     }
 
 }
