@@ -3,10 +3,8 @@
     <!-- <el-button @click="fresh">fresh</el-button> -->
 </template>
 <script setup>
-
 import Plotly from 'plotly.js/dist/plotly';
 import { reactive,watch,ref} from 'vue';
-
         //定义gantt属性
         const props=defineProps({
            tasks:Array,//记录每一条任务start，end时间，执行的value
@@ -26,7 +24,7 @@ import { reactive,watch,ref} from 'vue';
         //     totalDay:40
         // }
         //记录将tasks转变为plotly.js所需要的配置信息
-        let data=reactive([])
+        let data=[]
         //任务颜色列表
         let colorList=['#00CD00','#4266BE','#FE0302','#FF7204','#019899'];
         let colorMap=new Map();
@@ -86,12 +84,10 @@ import { reactive,watch,ref} from 'vue';
                     colorMap.set(value,color);
                 }
                 data.push(item);
-
             })
         }
        
         
-
         const layout = {
         xaxis: {
           range: [0, props.totalDay],
@@ -125,11 +121,7 @@ import { reactive,watch,ref} from 'vue';
       }
       
       watch(props.tasks,fresh)
-
        
       
   
-
-
-
 </script>
