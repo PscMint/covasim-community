@@ -2,10 +2,8 @@
     <el-row>
         <el-col :span="8">
             <el-collapse  >
+                <!-- 左边：参数面板 -->
                 <el-collapse-item title="基本模拟设定" >
-                    
-                    
-                        
                             <el-form v-model="simPars" label-position="top">
                                 <el-tabs v-model="activeSim" class="demo-tabs" >
                                     <el-tab-pane label="人口" name="first">
@@ -167,14 +165,10 @@
                                     </el-col>
                                 </el-row> -->
                             </el-form>
-                        
-                    
-                
-                    
-                </el-collapse-item>
+                        </el-collapse-item>
                 <el-collapse-item title="流行病学参数" name="2">
                     <el-form :model="epiPars" label-position="top">
-                                <el-row>
+                                <el-row :gutter="10">
                                     <el-col :span="11">
                                         <el-tooltip content="开启后以输入的数值模拟为准，若使用选择模式请勿开启">
                                             <el-form-item>
@@ -184,11 +178,7 @@
                                             </el-form-item>
                                         </el-tooltip>
                                         <el-form-item  label="病毒传播率">
-                                        <el-input  :disabled="!epiPars.isUseful" v-model="epiPars.beta"
-                                        @change="()=>{
-                                            if(epiPars.beta==null)
-                                             isRel=false;
-                                        }"/>
+                                        <el-input  :disabled="!epiPars.isUseful" v-model="epiPars.beta"/>
                                         </el-form-item>
                                         <el-form-item label="相对有症状概率">
                                         <el-input :disabled="!epiPars.isUseful"  v-model="epiPars.symp" />
@@ -197,7 +187,6 @@
                                         <el-input :disabled="!epiPars.isUseful"  v-model="epiPars.crit" />
                                         </el-form-item>
                                     </el-col>
-                                    <el-col :span="2"></el-col>
                                     <el-col :span="11">
                                         
                                        
@@ -209,17 +198,13 @@
                                         <el-input :disabled="!epiPars.isUseful" v-model="epiPars.death"  />
                                         </el-form-item>
                                     </el-col>
-                                
                                 </el-row>
-                                
-                                
                             </el-form>
                 </el-collapse-item>
-                <el-collapse-item title="防疫措施参数" name="3">
-                    
-                       
+                <el-collapse-item title="防疫措施参数" name="3"> 
                     <el-tabs style="margin:10px" v-model="activeInt" class="demo-tabs" >
                         <el-tab-pane label="社区传播率设置" name="first">
+                            <!-- 添加防疫计划控件 -->
                             <el-form :model="cdisForm" label-position="top">
                                 <el-row :gutter="10">
                                 <el-col :span="6">
@@ -255,14 +240,11 @@
                                 </el-tooltip>   
                                 
                             </el-row>
-                            </el-form>
-                            
+                            </el-form>  
                         </el-tab-pane>
-                        <!-- <el-tab-pane label="Config" name="second">Config</el-tab-pane>
-                        <el-tab-pane label="Role" name="third">Role</el-tab-pane>
-                        <el-tab-pane label="Task" name="fourth">Task</el-tab-pane> -->
                     </el-tabs>
                     <el-divider border-style="dashed" ></el-divider>
+                    <!-- 防疫计划展示表格 -->
                     <el-table :data="intPars.c_distance" style="width: 90%;margin: auto;" v-show="intPars.c_distance.length!=0">
                         <el-table-column prop="start" label="开始" width="90" />
                         <el-table-column prop="end" label="结束" width="90" />
@@ -272,41 +254,30 @@
                             <template #default="scope">
                                 <el-button plain type="danger" @click="deleteInterv(scope.$index)">删除</el-button>
                             </template>
-                            
                         </el-table-column>
                     </el-table>
-                   
+                   <!-- 防疫计划展示甘特图 -->
                     <tiny-gantt
                     :totalDay="days"
                     :tasks="intPars.c_distance"
-                    ></tiny-gantt>
-                   
-                   
-                                                            
-                           
+                    ></tiny-gantt>       
                 </el-collapse-item>
             </el-collapse>
+            <!-- 启动模型模拟 -->
             <div class="button-group">
                 <el-button type="success" plain @click="onRun">运行</el-button>
                 <!-- <el-button type="primary" plain>取消</el-button> -->
             </div>
-            
-        
         </el-col>
+        <!-- 结果展示部分 -->
         <el-col :span="16">
-            
-            
-            <!-- 重要数字看板 -->
+            <!-- 核心数字看板 -->
             <el-card :body-style="{display:'flex'}"  shadow="hover" v-loading="loading" element-loading-text="运行中...">
                 <!-- 累计 感染，重症，危重症，死亡 ，治愈-->
-                
                 <div  v-for="item in panel" class="panel-block">
                     <div>{{ item.label }}</div>
                     <div class="num-style" :style="{color:item.color}">{{ item.num }}</div>
-                    
-                
                 </div>
-
             </el-card>
             <!-- 图表看板 -->
             <el-card shadow="hover" v-loading="loading" element-loading-text="运行中...">
@@ -329,18 +300,10 @@
                     </el-skeleton> -->
                 </div>
             </el-card>
-           
         </el-col>
     </el-row>
-    
-        
-    <!-- v-model="activeNames" @change="handleChange" -->
-   
- 
-            
-   
-    
 </template>
+
 <script>
 import * as Echart from "echarts"
 import { getCurrentInstance,onMounted,reactive,ref,onUnmounted,defineComponent,defineAsyncComponent} from 'vue'
@@ -352,7 +315,66 @@ components:{
 },
 setup(){
     const {proxy}=getCurrentInstance()
-   //penal_data:
+     //工具函数
+    //检查输入时间的相对时间正确性
+    const checkTime=()=>{
+        if(simPars.start_day-simPars.end_day>=0){
+            ElMessage({
+                message:"模拟天数必须是1天及以上",
+                type:'error'
+            })
+            simPars.start_day=new Date('2022-01-01'),
+            simPars.end_day=new Date('2022-02-20')
+        }    
+    }
+     //计算两个日期包括的天数
+     function getDaysBetweenDates(date1, date2) {
+        const diffTime = Math.abs(date2 - date1);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return diffDays;
+    }
+    //自定义时间处理函数
+    function formatDate(date) {
+            if(date instanceof Date){
+                var year = date.getFullYear();
+                var month = date.getMonth() + 1;
+                var day = date.getDate();
+
+                month = month < 10 ? '0' + month : month;
+                day = day < 10 ? '0' + day : day;
+
+                return year + '-' + month + '-' + day;
+            }
+            else{
+                return date;
+            }
+                
+    }
+    //自定义表单字符串转化小数函数
+    function toFloatNumber(value) { 
+            if(typeof value==="number")
+            return value;
+            // 清除"数字"和"."以外的字符
+            value = value.replace(/[^\d.]/g,"");
+            // 清除开头的"."
+            value = value.replace(/^\./g,"");
+            // 将超过两位小数以外的数字替换为字符"."
+            value = value.replace(/\.{2,}/g,".");
+            // 除了第一个小数点以后，后面的小数点全部替换为空
+            value = value.replace(".","$#$").replace(/\./g,"").replace("$#$",".");
+            // 只能输入六位小数
+            value = value.replace(/^(\-)*(\d+)\.(\d\d\d\d\d\d).*$/,'$1$2.$3');
+            //如果没有小数点，首位不能为类似于 01、02的数字
+            if(value.indexOf(".")< 0 && value !=""){
+                if(value.substr(0,1) == '0' && value.length == 2){
+                    value= value.substr(1,value.length);
+                }
+            }
+            return parseFloat(value)
+        }
+
+   //响应式对象
+   //penal_data（核心数字看板）:
     const panel = reactive({
         cum_infections:{
             label:"累计感染数量",
@@ -380,8 +402,9 @@ setup(){
             color:"#000000",
         },
 })
+    //基本模拟tabs控件开关
     let activeSim=ref('first');
-    //sim_pars
+    //sim_pars（基本模拟参数）
     const simPars = reactive({
     start_day: new Date('2022-01-01'),
     end_day: new Date('2022-02-20'),
@@ -400,20 +423,9 @@ setup(){
     variant_start_day: '2022-02-05',
     // n_import: 0
     })
-    //检查输入时间的相对时间正确性
-    const checkTime=()=>{
-        if(simPars.start_day-simPars.end_day>=0){
-            ElMessage({
-                message:"模拟天数必须是1天及以上",
-                type:'error'
-            })
-            simPars.start_day=new Date('2022-01-01'),
-            simPars.end_day=new Date('2022-02-20')
-        }    
-    }
-    //epi_pars
+   
+    //epi_pars（流行病学参数）
     const epiPars=reactive({
-        //这里的概率都是相对概率
         isUseful:ref(true),
         symp:"1.0",
         severe:"1.0",
@@ -422,9 +434,11 @@ setup(){
         rel_beta:"1.0",
         beta:"0.015"
     })
-    //控制传播率和相对传播率是否可传递
-    let isRel=true;
-    //int_pars防疫参数用于接收表单参数
+     //int_pars(防疫参数)
+     const intPars={
+        c_distance:reactive([])
+    }
+    //接收添加防疫计划的表单参数
     const cdisForm=reactive(
         {
             start:0,
@@ -432,59 +446,8 @@ setup(){
             value:0.5
         }
     )
-    //防疫标签页开关
+    //防疫tabs控件开关
     let activeInt=ref("first")
-    //int_pars防疫参数
-    const intPars={
-        c_distance:reactive([])
-    }
-    //工具函数，计算两个日期包括的天数
-    function getDaysBetweenDates(date1, date2) {
-        const diffTime = Math.abs(date2 - date1);
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        return diffDays;
-    }
-    //检验输入的时间参数合理性，添加防疫记录
-    const addInterv=()=>{
-        //根据sim参数计算出设定天数的最大值
-        const maxDay=getDaysBetweenDates(simPars.start_day,simPars.end_day)
-        //排除非法数值
-        if(cdisForm.start>=cdisForm.end||cdisForm.start>maxDay||cdisForm.end>maxDay||cdisForm.start<0||cdisForm.end<0){
-            ElMessage({
-                message:"时间选择值非法",
-                type:"error"
-            })
-            return;
-        }
-        //检查重叠时间
-        let overlap=false;
-        overlap=intPars['c_distance'].some(({start,end})=>{
-            return cdisForm.start<=start&&cdisForm.end>=start||
-            cdisForm.start>=start&&cdisForm.start<=end
-
-        })
-        if(overlap){
-                ElMessage({
-                    message:"本次时间和之前的防疫措施冲突，请修改",
-                    type:"error"
-                })
-                return;
-        }
-        //将响应式对象的值读取出来，加入列表中,否则加入响应式会导致数据变动
-        const new_interv=Object.assign({},cdisForm)
-        
-        intPars['c_distance'].push(new_interv);
-        //将表格中的数据按照start升序排列
-        intPars['c_distance'].sort((a,b)=>{
-            return a.start-b.start;
-        })
-    }
-    //删除防疫措施
-    const deleteInterv=(index)=>{
-       intPars['c_distance'].splice(index,1);
-    }
-    
-    
     //折线图的配置参数
     let xOptions=reactive({
                  title:{
@@ -530,67 +493,48 @@ setup(){
                 series:[],
             })
    
-    //自定义时间处理函数
-    function formatDate(date) {
-            if(date instanceof Date){
-                var year = date.getFullYear();
-                var month = date.getMonth() + 1;
-                var day = date.getDate();
-
-                month = month < 10 ? '0' + month : month;
-                day = day < 10 ? '0' + day : day;
-
-                return year + '-' + month + '-' + day;
-            }
-            else{
-                return date;
-            }
-                
-    }
-    //自定义表单字符串转化小数函数
-    function toFloatNumber(value) { 
-            if(typeof value==="number")
-            return value;
-            // 清除"数字"和"."以外的字符
-            value = value.replace(/[^\d.]/g,"");
-            // 清除开头的"."
-            value = value.replace(/^\./g,"");
-            // 将超过两位小数以外的数字替换为字符"."
-            value = value.replace(/\.{2,}/g,".");
-            // 除了第一个小数点以后，后面的小数点全部替换为空
-            value = value.replace(".","$#$").replace(/\./g,"").replace("$#$",".");
-            // 只能输入六位小数
-            value = value.replace(/^(\-)*(\d+)\.(\d\d\d\d\d\d).*$/,'$1$2.$3');
-            //如果没有小数点，首位不能为类似于 01、02的数字
-            if(value.indexOf(".")< 0 && value !=""){
-                if(value.substr(0,1) == '0' && value.length == 2){
-                    value= value.substr(1,value.length);
-                }
-            }
-            return parseFloat(value)
+    //方法
+    //检验防疫计划输入的时间参数合理性，添加防疫记录
+    const addInterv=()=>{
+        //根据sim参数计算出设定天数的最大值
+        const maxDay=getDaysBetweenDates(simPars.start_day,simPars.end_day)
+        //排除非法数值
+        if(cdisForm.start>=cdisForm.end||cdisForm.start>maxDay||cdisForm.end>maxDay||cdisForm.start<0||cdisForm.end<0){
+            ElMessage({
+                message:"时间选择值非法",
+                type:"error"
+            })
+            return;
         }
+        //检查重叠时间
+        let overlap=false;
+        overlap=intPars['c_distance'].some(({start,end})=>{
+            return cdisForm.start<=start&&cdisForm.end>=start||
+            cdisForm.start>=start&&cdisForm.start<=end
 
-
-     //初始化累计和新增折线图
-    let cumChart=null
-    let newChart=null
-    //添加图表的resize处理程序
-    function resizeChart(){
-        cumChart.resize();
-        newChart.resize();
+        })
+        if(overlap){
+                ElMessage({
+                    message:"本次时间和之前的防疫措施冲突，请修改",
+                    type:"error"
+                })
+                return;
+        }
+        //将响应式对象的值读取出来，加入列表中,否则加入响应式会导致数据变动
+        const new_interv=Object.assign({},cdisForm)
+        
+        intPars['c_distance'].push(new_interv);
+        //将表格中的数据按照start升序排列
+        intPars['c_distance'].sort((a,b)=>{
+            return a.start-b.start;
+        })
     }
-    onMounted(()=>{
-        cumChart=Echart.init(proxy.$refs["cum_echart"]);
-        newChart=Echart.init(proxy.$refs["new_echart"]);
-        //增加窗口变化的监听器，及时调整echart图大小
-        window.addEventListener('resize',resizeChart);
-    })
-    onUnmounted(()=>{
-        //移除监听窗口变化的监听器
-        window.removeEventListener('resize',resizeChart);
-    })
-    //文件上传处理
-    const handleUpload=(fileData)=>{
+    //删除防疫措施
+    const deleteInterv=(index)=>{
+       intPars['c_distance'].splice(index,1);
+    }
+      //文件上传处理
+      const handleUpload=(fileData)=>{
         let {file}=fileData
         //console.log(file)
         
@@ -610,9 +554,9 @@ setup(){
         ElMessage.warning(
             `本次模拟只能上传一份文件`
         )
-}
-    
-     //图标加载参数
+    }
+
+     //图标加载参数，配合onRun使用
      let loading=ref(false)
     //处理点击运行后的事件
     const onRun=()=>{
@@ -650,10 +594,10 @@ setup(){
             }
          }
          //在控制台检查前端传参的格式
-         console.log("前端传递的参数集合",all_pars)
+         //console.log("前端传递的参数集合",all_pars)
          proxy.$api.addNewRun(all_pars).then((res)=>{
             //检查从后台获取一系列表格数据
-            console.log(res);
+            //console.log(res);
             //处理后台传入的数据，赋值给echart的对象
             const {panelData,date,cumData,newData}=res;
             //给面板字典赋值
@@ -678,15 +622,8 @@ setup(){
                 return item.name
             })
             //添加cum的标题
-            xOptions.title.text="日累计数量"
-            //渲染累计图
-           
-        //    let cumChart=Echart.init(proxy.$refs["cum_echart"]);
-       
-            
+            xOptions.title.text="日累计数量";
             cumChart.setOption(xOptions);
-            
-            
             //替换为new数据序列
             xOptions.series=newData.map((item)=>{
                 return{ 
@@ -704,15 +641,9 @@ setup(){
             })
             //添加cum的标题
             xOptions.title.text="日新增数量"
-            //渲染新增图
-            
-            // let newChart=Echart.init(proxy.$refs["new_echart"]);
-            
             newChart.setOption(xOptions);
             //渲染结束后取消加载动画
             loading.value=false;
-            
-
          }
          )
 
@@ -729,7 +660,7 @@ setup(){
             showFileInput.value=false;
         }
     }
-    //计算模拟使用的天数
+    //计算模拟使用的天数，绑定到gantt组件
     const days=getDaysBetweenDates(simPars.start_day-simPars.end_day)
     const test=[
                 {start:0,end:10,value:0.5},
@@ -737,13 +668,30 @@ setup(){
                 {start:31,end:35,value:0.7},
                 {start:36,end:40,value:0.8}
             ]
+     //初始化累计和新增折线图
+     let cumChart=null
+    let newChart=null
+    //添加图表的resize处理程序
+    function resizeChart(){
+        cumChart.resize();
+        newChart.resize();
+    }
+    onMounted(()=>{
+        cumChart=Echart.init(proxy.$refs["cum_echart"]);
+        newChart=Echart.init(proxy.$refs["new_echart"]);
+        //增加窗口变化的监听器，及时调整echart图大小
+        window.addEventListener('resize',resizeChart);
+    })
+    onUnmounted(()=>{
+        //移除监听窗口变化的监听器
+        window.removeEventListener('resize',resizeChart);
+    })
     return{
         test,
         simPars,
         epiPars,
         onRun,
         loading,
-        isRel,
         toFloatNumber,
         panel,
         handleCommunity,
