@@ -265,7 +265,7 @@
             </el-collapse>
             <!-- 启动模型模拟 -->
             <div class="button-group">
-                <el-button type="success" plain @click="onRun">运行</el-button>
+                <el-button type="success" plain v-debounce="onRun">运行</el-button>
                 <!-- <el-button type="primary" plain>取消</el-button> -->
             </div>
         </el-col>
@@ -275,8 +275,8 @@
             <el-card :body-style="{display:'flex'}"  shadow="hover" v-loading="loading" element-loading-text="运行中...">
                 <!-- 累计 感染，重症，危重症，死亡 ，治愈-->
                 <div  v-for="item in panel" class="panel-block">
-                    <div>{{ item.label }}</div>
-                    <div class="num-style" :style="{color:item.color}">{{ item.num }}</div>
+                    <div >{{ item.label }}</div>
+                    <div  :style="{color:item.color}">{{ item.num }}</div>
                 </div>
             </el-card>
             <!-- 图表看板 -->
@@ -757,10 +757,7 @@ justify-content: space-around;
  flex-direction: column;
  align-items: center;
  font-weight: bold;
- .num-style{
-    font-size:20px;
-   
- }
+ font-size:1rem;
 }
 }
 .upload-tip{
