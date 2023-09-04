@@ -2,11 +2,13 @@ import { createApp } from 'vue'
 import './myStyle.css'
 import App from './App.vue'
 import ElementPlus from 'element-plus'
+import "./style/tailwind.css"
 import 'element-plus/dist/index.css'
 import router from "./router"
 import api from "./api/api"
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
-//import './api/mock'
+import store from './store/index.js'
+
 
 const app=createApp(App)
 for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
@@ -14,6 +16,7 @@ for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
   }
 app.use(router)
 app.use(ElementPlus)
+app.use(store)
 app.config.globalProperties.$api=api
 app.directive('debounce', {
   beforeMount(el,binding){
@@ -32,7 +35,7 @@ app.directive('debounce', {
   mounted(el){
     el.addEventListener('click',el._debouceHandler)
   },
-  unmounted(el) { 
+  unmounted(el) {
     el.removeEventListener('click',el._debouceHandler)
   }
 })
