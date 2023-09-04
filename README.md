@@ -16,4 +16,4 @@ npm install
 
 ## 使用展示
 
-<href src='README-基于covasim的社区疫情分析说明书.pdf'>
+请参考本目录下的“基于covasim的疫情分析使用说明书.pdf”
