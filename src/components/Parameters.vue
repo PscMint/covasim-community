@@ -124,9 +124,6 @@ const handleExceed=(files)=>{
       `本次模拟只能上传一份文件`
   )
 }
-
-//图标加载参数，配合onRun使用
-let loading=ref(false)
 let xOptions=reactive({
   title:{
     text:"",
@@ -180,7 +177,7 @@ const onRun=()=>{
     curStore.state.newChart.clear();
 
   //打开加载页面动画，保证用户体验
-  loading.value=true
+  curStore.commit('setLoading',true)
 
   //运行提交的执行函数，在提交之前处理日期格式
   simPars.start_day=formatDate(simPars.start_day)
@@ -258,7 +255,7 @@ const onRun=()=>{
         curStore.commit('dataRenderChart',{options:xOptions,chartId:'new'})
         // curStore.state.newChart.setOption(xOptions);
         //渲染结束后取消加载动画
-        loading.value=false;
+        curStore.commit('setLoading',false)
         //渲染结束后关闭参数设置
         curStore.commit('setDrawer',false);
       }
@@ -529,7 +526,7 @@ const days=getDaysBetweenDates(simPars.start_day-simPars.end_day)
       <el-table :data="intPars.c_distance" style="width: 90%;margin: auto;" v-show="intPars.c_distance.length!=0">
         <el-table-column prop="start" label="开始" width="90" />
         <el-table-column prop="end" label="结束" width="90" />
-        <el-table-column prop="value" label="本时间段传播影响因子" width="180" />
+        <el-table-column prop="value" label="本时间段β" width="100" />
         <el-table-column label="操作">
           <!-- 使用scope插槽拿到表格的row -->
           <template #default="scope">

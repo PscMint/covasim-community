@@ -10,21 +10,30 @@
     <el-row>
           <el-drawer
               v-model="curStore.state.drawer"
+              v-if="!isMobile"
+              size="40%"
           >
            <Parameters/>
           </el-drawer>
+          <el-dialog
+              v-model="curStore.state.drawer"
+              v-if="isMobile"
+              width="95%"
+          >
+            <Parameters/>
+          </el-dialog>
         <!-- 结果展示部分 -->
         <el-col :span="24">
             <!-- 核心数字看板 -->
-            <el-card :body-style="{display:'flex'}"  shadow="hover" v-loading="loading" element-loading-text="运行中...">
+            <el-card :body-style="{display:'flex'}"  shadow="hover" v-loading="curStore.state.loading" element-loading-text="运行中...">
                 <!-- 累计 感染，重症，危重症，死亡 ，治愈-->
                 <div  v-for="item in panel" class="panel-block">
-                    <div >{{ item.label }}</div>
+                    <div class="text-xs sm:text-base">{{ item.label }}</div>
                     <div  :style="{color:item.color}">{{ item.num }}</div>
                 </div>
             </el-card>
             <!-- 图表看板 -->
-            <el-card shadow="hover" v-loading="loading" element-loading-text="运行中...">
+            <el-card shadow="hover" v-loading="curStore.state.loading" element-loading-text="运行中...">
                 <div ref="cum_echart" style="height:300px;">
                     <!-- <el-skeleton :rows="8" animated :loading="loading" :throttle="500">
                         <template #template>
@@ -34,7 +43,7 @@
                     </el-skeleton> -->
                 </div>
             </el-card>
-            <el-card shadow="hover" v-loading="loading" element-loading-text="运行中...">
+            <el-card shadow="hover" v-loading="curStore.state.loading" element-loading-text="运行中...">
                 <div ref="new_echart" style="height:300px;">
                     <!-- <el-skeleton :rows="8" animated :loading="loading" :throttle="500">
                         <template #template>
@@ -54,28 +63,28 @@ import { getCurrentInstance,onMounted,onUnmounted, ref,} from 'vue'
 import Parameters from "../components/Parameters.vue";
 import {useStore} from 'vuex'
 import { ArrowLeft } from '@element-plus/icons-vue'
+import {useBasicLayout} from '../hooks/useBasicLayout'
 
+const {isMobile} = useBasicLayout()
 const {proxy}=getCurrentInstance()
 //初始化累计和新增折线图
 let curStore = useStore()
 const panel = curStore.state.panel
 //添加图表的resize处理程序
-function resizeChart(){
-  console.log(3,curStore.state.cumChart)
-  curStore.state.cumChart.resize();
-  curStore.state.newChart.resize();
+const resizeNew = ()=>{
+  // console.log(1)
+  curStore.commit('resize')
 }
 const handleTagClick = ()=>{
   curStore.commit('setDrawer',true)
 }
-const resizeNew = ()=>{
-  console.log(1)
-  curStore.dispatch('resizeChart')
-}
+
 onMounted(()=>{
+  //初始化echart对象
   curStore.commit('setNewChart',Echart.init(proxy.$refs["new_echart"]))
   curStore.commit('setCumChart',Echart.init(proxy.$refs["cum_echart"]))
-  console.log('?',curStore.state.cumChart)
+
+  // console.log('?',curStore.state.cumChart)
   //增加窗口变化的监听器，及时调整echart图大小
   window.addEventListener('resize',resizeNew);
 })

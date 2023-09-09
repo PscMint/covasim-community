@@ -1,5 +1,5 @@
 <template>
-    <div v-show="isShow" id="gantt-chart" style="width:480px"></div>
+    <div v-show="isShow" id="gantt-chart" style={width:90%} ></div>
     <!-- <el-button @click="fresh">fresh</el-button> -->
 </template>
 <script setup>
@@ -9,7 +9,7 @@ import { reactive,watch,ref} from 'vue';
         const props=defineProps({
            tasks:Array,//记录每一条任务start，end时间，执行的value
            totalDay:Number,//模拟的天数上限制
-          
+
         })
         //控制页面是否显示的变量，无数据不显示
         const isShow=ref(false)
@@ -30,12 +30,12 @@ import { reactive,watch,ref} from 'vue';
         let colorMap=new Map();
         const addFigData=()=>{
              //data数组需要清空，否则上一轮的删除数据只在task中消失，data则没做任何操作
-            
+
             data.length=0
             if(props.tasks.length===0){
                 return;
             }
-           
+
             //data=[]不可以
             props.tasks.map(({start,end,value})=>{
                 const item= {
@@ -47,7 +47,7 @@ import { reactive,watch,ref} from 'vue';
                     xref: 'x',
                     yref: 'y',
                     //任务条样式
-                    
+
                     mode: 'lines+markers',
                     //标记点
                     marker: {
@@ -76,7 +76,7 @@ import { reactive,watch,ref} from 'vue';
                 }
                 else{
                     if(colorList.length==0){
-                        colorList=['#00CD00','#4266BE','#FE0302','#FF7204','#019899'];    
+                        colorList=['#00CD00','#4266BE','#FE0302','#FF7204','#019899'];
                     }
                     const color=colorList.pop();
                     item.line.color=color;
@@ -86,42 +86,44 @@ import { reactive,watch,ref} from 'vue';
                 data.push(item);
             })
         }
-       
-        
+
+
         const layout = {
-        xaxis: {
-          range: [0, props.totalDay],
-          title:"Day",
-        },
-        yaxis: {
-          title:"beta_change",
-          range: [0, 1],
-          tickvals: [0,0.2,0.40,0.60,0.80,1],
-          //dtick:0.2,
-          ticktext: ['0%', '20%','40%','60%', '80%','100%']
-        },
-        
+          width:420,
+          height:'80%',
+          xaxis: {
+            range: [0, props.totalDay],
+            title:"Day",
+          },
+          yaxis: {
+            title:"beta_change",
+            range: [0, 1],
+            tickvals: [0,0.2,0.40,0.60,0.80,1],
+            //dtick:0.2,
+            ticktext: ['0%', '20%','40%','60%', '80%','100%']
+          },
+
       };
-     
+
       const config={responsive:true}
       const fresh=()=>{
         addFigData()
-       
+
         //数据为0，需要不显示，否则上一轮渲染的图片不变
         if(data.length==0){
             isShow.value=false;
         }
         else{
-            
+
         Plotly.newPlot('gantt-chart', data, layout,config);
         isShow.value=true;
         }
         console.log("当前任务",props.tasks)
         console.log("当前任务对应的data",data)
       }
-      
+
       watch(props.tasks,fresh)
-       
-      
-  
+
+
+
 </script>

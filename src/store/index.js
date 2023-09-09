@@ -3,6 +3,8 @@ import {nextTick,shallowRef} from 'vue'
 
 export default createStore({
     state: {
+        //白屏加载缓冲，开始结束在Paramters，展示在home
+        loading:false,
         //控制参数面板上的drawer
         drawer:false,
         //初始化累计和新增折线图
@@ -45,6 +47,9 @@ export default createStore({
         },
     },
     mutations: {
+        setLoading(state,isLoading){
+            state.loading = isLoading
+        },
         setDrawer(state, isShow){
             state.drawer = isShow
         },
@@ -65,24 +70,16 @@ export default createStore({
             else if(chartId === 'new' && state.newChart) {
                 state.newChart.setOption(options)
             }
-        }
-
-    },
-    actions: {
-        async resizeChart({getters}){
-            const cumc = getters.getCumChart
-            const newc = getters.getNewChart
-            console.log(2,newc)
-            await nextTick(()=>{
-                if(cumc){
-                    console.log(3)
-                    cumc.resize()
-                }
-                if(newc){
-                    newc.resize()
-                }
-            })
+        },
+        resize(state){
+            if(state.cumChart){
+                state.cumChart.resize()
+            }
+            if(state.newChart){
+                state.newChart.resize()
+            }
 
         }
+
     },
 });
